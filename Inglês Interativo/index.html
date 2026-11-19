@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>English Quest — Jogo Educativo Interativo</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --correct: #22c55e;
+      --wrong: #ef4444;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #0f172a, #1e1b4b);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background-color: var(--card);
+      width: 100%;
+      max-width: 650px;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .stats {
+      display: flex;
+      gap: 15px;
+      font-weight: bold;
+      font-size: 0.95rem;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 8px;
+      background: #334155;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 25px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      margin-bottom: 12px;
+      color: var(--accent);
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      margin-bottom: 25px;
+      line-height: 1.5;
+    }
+
+    .question-category {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+
+    .question-text {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    button.option-btn {
+      background: #334155;
+      color: var(--text);
+      border: 2px solid transparent;
+      padding: 14px 18px;
+      border-radius: 10px;
+      text-align: left;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    button.option-btn:hover:not(:disabled) {
+      background: #475569;
+      border-color: var(--accent);
+    }
+
+    button.option-btn.correct {
+      background: rgba(34, 197, 94, 0.2);
+      border-color: var(--correct);
+      color: #86efac;
+    }
+
+    button.option-btn.wrong {
+      background: rgba(239, 68, 68, 0.2);
+      border-color: var(--wrong);
+      color: #fca5a5;
+    }
+
+    button.option-btn:disabled {
+      cursor: default;
+    }
+
+    .feedback {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.6);
+      border-left: 4px solid var(--accent);
+      display: none;
+      line-height: 1.5;
+      font-size: 0.95rem;
+    }
+
+    .btn-primary {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #0f172a;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      color: white;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .result-score {
+      font-size: 3rem;
+      font-weight: bold;
+      color: var(--accent);
+      text-align: center;
+      margin: 15px 0;
+    }
+
+    .footer-note {
+      margin-top: 25px;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="start-screen">
+      <div class="badge" style="display:inline-block; margin-bottom:15px;">Projeto de Extensão • Jogos Digitais</div>
+      <h1>English Quest: Gamified Quiz</h1>
+      <p class="subtitle">
+        Ferramenta educativa interativa desenvolvida para apoiar práticas de vocabulário, expressões cotidianas e compreensão em Língua Inglesa durante sessões de mentoria.
+      </p>
+      <button class="btn-primary" onclick="startQuiz()">Iniciar Desafio (Start Game)</button>
+    </div>
+
+    <div id="quiz-screen" class="hidden">
+      <header>
+        <span class="badge" id="question-counter">Questão 1/8</span>
+        <div class="stats">
+          <span>🔥 Streak: <span id="streak">0</span></span>
+          <span>⭐ Pontos: <span id="score">0</span></span>
+        </div>
+      </header>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill"></div>
+      </div>
+
+      <div class="question-category" id="category">Vocabulário & Expressões</div>
+      <div class="question-text" id="question">Carregando pergunta...</div>
+
+      <div class="options" id="options"></div>
+
+      <div class="feedback" id="feedback"></div>
+
+      <button class="btn-primary hidden" id="next-btn" onclick="nextQuestion()">Próxima Questão ➔</button>
+    </div>
+
+    <div id="result-screen" class="hidden">
+      <div class="badge" style="display:inline-block; margin-bottom:10px;">Sessão Concluída!</div>
+      <h1>Resultado Final</h1>
+      <div class="result-score" id="final-score">0 pts</div>
+      <p class="subtitle" id="result-message" style="text-align:center;"></p>
+      <button class="btn-primary" onclick="startQuiz()">Jogar Novamente (Play Again)</button>
+    </div>
+
+    <div class="footer-note">
+      Desenvolvido por Yorhan Silva David • Atividade Extensionista FMU
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        category: "Phrasal Verbs",
+        question: "What does the phrasal verb 'give up' mean in English?",
+        options: [
+          "To start a new project",
+          "To stop trying or quit",
+          "To give a gift to someone",
+          "To wake up early"
+        ],
+        answer: 1,
+        explanation: "'Give up' significa desistir ou parar de tentar algo. Ex: 'Never give up on your dreams!'"
+      },
+      {
+        category: "False Friends (Falsos Cognatos)",
+        question: "If someone says 'I need to push the door', what should you do?",
+        options: [
+          "Puxar a porta em sua direção",
+          "Trancar a porta com chave",
+          "Empurrar a porta para frente",
+          "Bater na porta antes de entrar"
+        ],
+        answer: 2,
+        explanation: "Cuidado com o falso cognato! 'Push' significa EMPURRAR. Para puxar, usa-se 'Pull'."
+      },
+      {
+        category: "Everyday Idioms",
+        question: "What does the expression 'Piece of cake' mean?",
+        options: [
+          "Something very easy to do",
+          "A difficult problem to solve",
+          "Time for a coffee break",
+          "A delicious dessert"
+        ],
+        answer: 0,
+        explanation: "'Piece of cake' é uma expressão idiomática equivalente ao nosso 'mamão com açúcar' (algo muito fácil)."
+      },
+      {
+        category: "Grammar & Context",
+        question: "Complete the sentence: 'She _____ to London twice this year.'",
+        options: [
+          "have been",
+          "has been",
+          "was go",
+          "going"
+        ],
+        answer: 1,
+        explanation: "Com 'She' (3ª pessoa do singular) no Present Perfect, usamos 'has been' para indicar experiências de vida."
+      },
+      {
+        category: "Workplace & Tech English",
+        question: "In a remote meeting, what does 'You are on mute' mean?",
+        options: [
+          "Your camera is turned off",
+          "Your internet connection is slow",
+          "Your microphone is silenced",
+          "You left the meeting"
+        ],
+        answer: 2,
+        explanation: "'You are on mute' é uma das frases mais usadas em reuniões online e significa que o seu microfone está no mudo."
+      },
+      {
+        category: "False Friends (Falsos Cognatos)",
+        question: "What is the correct meaning of the word 'Actually'?",
+        options: [
+          "Atualmente / Hoje em dia",
+          "Na verdade / Na realidade",
+          "Ativamente",
+          "Recentemente"
+        ],
+        answer: 1,
+        explanation: "'Actually' significa 'na verdade'. Para dizer 'atualmente', usamos 'Currently' ou 'Nowadays'."
+      },
+      {
+        category: "Everyday Expressions",
+        question: "If a friend says 'Break a leg!' before a presentation, they are:",
+        options: [
+          "Wishing you good luck",
+          "Telling you to be careful",
+          "Asking you to stop",
+          "Making fun of you"
+        ],
+        answer: 0,
+        explanation: "'Break a leg!' é uma expressão muito comum no teatro e no dia a dia para desejar 'Boa sorte!'."
+      },
+      {
+        category: "Vocabulary",
+        question: "Which word best completes: 'I'm looking _____ to our next English session!'",
+        options: [
+          "backward",
+          "forward",
+          "after",
+          "around"
+        ],
+        answer: 1,
+        explanation: "'Looking forward to' significa 'ansioso(a) por' ou 'aguardando com expectativa'."
+      }
+    ];
+
+    let currentIndex = 0;
+    let score = 0;
+    let streak = 0;
+
+    function startQuiz() {
+      currentIndex = 0;
+      score = 0;
+      streak = 0;
+      document.getElementById("start-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.add("hidden");
+      document.getElementById("quiz-screen").classList.remove("hidden");
+      updateStats();
+      loadQuestion();
+    }
+
+    function updateStats() {
+      document.getElementById("score").textContent = score;
+      document.getElementById("streak").textContent = streak;
+    }
+
+    function loadQuestion() {
+      const q = questions[currentIndex];
+      document.getElementById("question-counter").textContent = `Questão ${currentIndex + 1}/${questions.length}`;
+      document.getElementById("category").textContent = q.category;
+      document.getElementById("question").textContent = q.question;
+      document.getElementById("progress-fill").style.width = `${(currentIndex / questions.length) * 100}%`;
+
+      const optionsDiv = document.getElementById("options");
+      optionsDiv.innerHTML = "";
+
+      const feedbackDiv = document.getElementById("feedback");
+      feedbackDiv.style.display = "none";
+      document.getElementById("next-btn").classList.add("hidden");
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "option-btn";
+        btn.textContent = opt;
+        btn.onclick = () => selectAnswer(idx, btn);
+        optionsDiv.appendChild(btn);
+      });
+    }
+
+    function selectAnswer(selectedIndex, btnElement) {
+      const q = questions[currentIndex];
+      const allBtns = document.querySelectorAll(".option-btn");
+      allBtns.forEach(b => b.disabled = true);
+
+      const feedbackDiv = document.getElementById("feedback");
+      feedbackDiv.style.display = "block";
+
+      if (selectedIndex === q.answer) {
+        btnElement.classList.add("correct");
+        streak++;
+        const bonus = streak > 1 ? streak * 10 : 0;
+        score += 100 + bonus;
+        feedbackDiv.innerHTML = `<strong>✅ Correto! (+${100 + bonus} pts)</strong><br>${q.explanation}`;
+      } else {
+        btnElement.classList.add("wrong");
+        allBtns[q.answer].classList.add("correct");
+        streak = 0;
+        feedbackDiv.innerHTML = `<strong>❌ Quase lá!</strong><br>${q.explanation}`;
+      }
+
+      updateStats();
+      document.getElementById("next-btn").classList.remove("hidden");
+    }
+
+    function nextQuestion() {
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        loadQuestion();
+      } else {
+        showResults();
+      }
+    }
+
+    function showResults() {
+      document.getElementById("quiz-screen").classList.add("hidden");
+      document.getElementById("result-screen").classList.remove("hidden");
+      document.getElementById("final-score").textContent = `${score} pontos`;
+
+      const maxPossible = questions.length * 100;
+      let msg = "";
+
+      if (score >= maxPossible * 0.8) {
+        msg = "Excelente desempenho! Ótimo domínio de vocabulário e expressões em inglês.";
+      } else if (score >= maxPossible * 0.5) {
+        msg = "Bom trabalho! A prática gamificada ajuda a fixar falsos cognatos e expressões.";
+      } else {
+        msg = "Ótimo começo! Jogue novamente para revisar as explicações e aumentar sua pontuação.";
+      }
+
+      document.getElementById("result-message").textContent = msg;
+    }
+  </script>
+</body>
+</html>
